@@ -4,8 +4,9 @@ var Comment = React.createClass({
     var rawMarkup = md.render(this.props.children.toString());
     return { __html: rawMarkup };
   },
-  excluir: function() {
-    alert('chamou excluir, id: '+this.props.id);
+  excluir: function(e) {
+    //alert('chamou excluir, id: '+this.props.id);
+    this.props.onCommentDelete({id: this.props.id});
   },
   render: function() {
     var md = new Remarkable();
@@ -22,10 +23,20 @@ var Comment = React.createClass({
 });
 
 var CommentList = React.createClass({
+  handleCommentDelete: function(comment) {
+    //alert('hanleCommentDelete, id: '+comment.id);
+    this.props.onCommentDelete(comment);
+  },
   render: function() {
+    var self = this;
     var commentNodes = this.props.data.map(function(comment) {
       return (
-        <Comment author={comment.author} key={comment.id} id={comment.id}>
+        <Comment
+          author={comment.author}
+          key={comment.id}
+          id={comment.id}
+          onCommentDelete={self.handleCommentDelete}
+        >
           {comment.text}
         </Comment>
       );
@@ -91,11 +102,23 @@ var CommentBox = React.createClass({
     var newComments = comments.concat([comment]);
     this.setState({data: newComments});
   },
+  handleCommentDelete: function(comment) {
+    //alert('CommentBox.handleCommentDelete: id: '+comment.id);
+    var comments = this.state.data;
+    var index = undefined;
+    for(var i=0;i<comments.length;i++) {
+      if( comments[i].id == comment.id ) {
+        index = i;
+      }
+    }
+    comments.splice(index, 1);
+    this.setState({data: comments});
+  },
   render: function() {
     return (
       <div className="commentBox">
         <h1>Comments</h1>
-        <CommentList data={this.state.data} />
+        <CommentList data={this.state.data} onCommentDelete={this.handleCommentDelete} />
         <CommentForm onCommentSubmit={this.handleCommentSubmit} />
       </div>
     );
